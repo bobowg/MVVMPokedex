@@ -22,9 +22,7 @@ import javax.inject.Inject
 class PokemonListViewModel @Inject constructor(
     private val repository: PokemonRepository
 ) : ViewModel() {
-
     private var curPage = 0
-
     var pokemonList = mutableStateOf<List<PokedexListEntry>>(listOf())
     var loadError = mutableStateOf("")
     var isLoading = mutableStateOf(false)

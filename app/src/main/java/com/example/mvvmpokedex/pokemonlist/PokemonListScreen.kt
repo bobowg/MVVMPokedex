@@ -1,10 +1,6 @@
 package com.example.mvvmpokedex.pokemonlist
 
-import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -16,26 +12,27 @@ import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.mvvmpokedex.R
 import com.example.mvvmpokedex.data.models.PokedexListEntry
 import com.example.mvvmpokedex.ui.theme.RobotoCondensed
+import com.example.mvvmpokedex.ui.theme.Shapes
 
 @Composable
 fun PokemonListScreen(navController: NavController) {
@@ -125,7 +122,7 @@ fun PokedexEntry(
             .clip(RoundedCornerShape(10.dp))
             .aspectRatio(1f)
             .background(
-                Brush.verticalGradient(listOf(dominantColor, defaultDominantColor))
+                Brush.verticalGradient(listOf(dominantColor, defaultDominantColor)),
             )
             .clickable {
                 navController.navigate(
@@ -136,14 +133,36 @@ fun PokedexEntry(
         val context = LocalContext.current
         val request = ImageRequest.Builder(context)
         Column {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 modifier = Modifier
                     .size(128.dp)
-                    .align(CenterHorizontally),
+                    .align(CenterHorizontally)
+                    .border(
+                        BorderStroke(4.dp, Color.Yellow),
+                        CircleShape
+                    )
+                    .padding(4.dp)
+                    .clip(CircleShape)
+                    .background(Color.DarkGray, CircleShape),
                 model = request
                     .data(entry.imageUrl)
-                    .crossfade(true).build(),
+                    .crossfade(true)
+                    .build(),
                 contentDescription = entry.pokemonName,
+                loading = {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colors.primary,
+                        modifier = Modifier.scale(0.5f)
+                    )
+                },
+                 onSuccess = {
+                         request.target {
+                             viewModel.calcDominantColor(it){color ->
+                                 dominantColor = color
+                             }
+                         }
+                 },
+                filterQuality = FilterQuality.Medium,
             )
 
             Text(
@@ -196,7 +215,9 @@ fun PokemonList(
     val endReached by remember { viewModel.endReached }
     val loadError by remember { viewModel.loadError }
     val isLoading by remember { viewModel.isLoading }
-    LazyColumn(contentPadding = PaddingValues(16.dp)) {
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+    ) {
         val itemCount = if (pokemonList.size % 2 == 0) {
             pokemonList.size / 2
         } else {
@@ -236,10 +257,4 @@ fun RetrySection(
             Text(text = "Retry")
         }
     }
-}
-
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
-@Composable
-fun PokemonlistPreview() {
-    PokemonListScreen(navController = rememberNavController())
 }
