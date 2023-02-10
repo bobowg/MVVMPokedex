@@ -10,9 +10,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.mvvmpokedex.pokemondetail.PokemonDetailScreen
 import com.example.mvvmpokedex.pokemonlist.PokemonListScreen
 import com.example.mvvmpokedex.ui.theme.MVVMPokedexTheme
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.*
 
 
 @AndroidEntryPoint
@@ -29,21 +31,26 @@ class MainActivity : ComponentActivity() {
                     composable(
                         "pokemon_detail_screen/{dominantColor}/{pokemonName}",
                         arguments = listOf(
-                            navArgument("dominantColor"){
+                            navArgument("dominantColor") {
                                 type = NavType.IntType
                             },
-                            navArgument("pokemonName"){
+                            navArgument("pokemonName") {
                                 type = NavType.StringType
                             }
                         )
-                    ){
-                        val dominantColor = remember{
+                    ) {
+                        val dominantColor = remember {
                             val color = it.arguments?.getInt("dominantColor")
-                            color?.let { Color(it)?:Color.White }
+                            color?.let { Color(it) } ?: Color.White
                         }
-                        val pokemonName = remember{
-                            it.arguments?.getString("pokemonName ")
+                        val pokemonName = remember {
+                            it.arguments?.getString("pokemonName")
                         }
+                        PokemonDetailScreen(
+                            dominantColor = dominantColor,
+                            pokemonName = pokemonName?.lowercase(Locale.ROOT) ?: "",
+                            navController = navController
+                        )
                     }
                 }
             }

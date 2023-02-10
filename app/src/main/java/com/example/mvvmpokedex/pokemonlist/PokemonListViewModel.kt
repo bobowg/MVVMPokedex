@@ -32,6 +32,7 @@ class PokemonListViewModel @Inject constructor(
     private var isSearchStarting = true
     var isSearching = mutableStateOf(false)
 
+
     init {
         loadPokemonPaginated()
     }
@@ -77,7 +78,11 @@ class PokemonListViewModel @Inject constructor(
                         }
                         val url =
                             "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png"
-                        PokedexListEntry(entry.name.capitalize(Locale.ROOT), url, number.toInt())
+                        PokedexListEntry(entry.name.replaceFirstChar {
+                            if (it.isLowerCase()) it.titlecase(
+                                Locale.ROOT
+                            ) else it.toString()
+                        }, url, number.toInt())
                     }
                     curPage++
 
@@ -88,6 +93,9 @@ class PokemonListViewModel @Inject constructor(
                 is Resource.Error -> {
                     loadError.value = result.message!!
                     isLoading.value = false
+                }
+                is Resource.Loading -> {
+                    isLoading.value = true
                 }
             }
         }

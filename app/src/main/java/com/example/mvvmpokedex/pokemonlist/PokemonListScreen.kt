@@ -32,10 +32,12 @@ import coil.request.ImageRequest
 import com.example.mvvmpokedex.R
 import com.example.mvvmpokedex.data.models.PokedexListEntry
 import com.example.mvvmpokedex.ui.theme.RobotoCondensed
-import com.example.mvvmpokedex.ui.theme.Shapes
 
 @Composable
-fun PokemonListScreen(navController: NavController) {
+fun PokemonListScreen(
+    navController: NavController,
+    viewModel: PokemonListViewModel = hiltViewModel()
+) {
     Surface(
         color = MaterialTheme.colors.background,
         modifier = Modifier.fillMaxSize()
@@ -54,7 +56,7 @@ fun PokemonListScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-
+                viewModel.searchPokemonList(it)
             }
             Spacer(modifier = Modifier.height(16.dp))
             PokemonList(navController = navController)
@@ -155,13 +157,13 @@ fun PokedexEntry(
                         modifier = Modifier.scale(0.5f)
                     )
                 },
-                 onSuccess = {
-                         request.target {
-                             viewModel.calcDominantColor(it){color ->
-                                 dominantColor = color
-                             }
-                         }
-                 },
+                onSuccess = {
+                    request.target {
+                        viewModel.calcDominantColor(it) { color ->
+                            dominantColor = color
+                        }
+                    }
+                },
                 filterQuality = FilterQuality.Medium,
             )
 
@@ -215,6 +217,10 @@ fun PokemonList(
     val endReached by remember { viewModel.endReached }
     val loadError by remember { viewModel.loadError }
     val isLoading by remember { viewModel.isLoading }
+    val isSearching by remember { viewModel.isSearching }
+
+
+
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
     ) {
@@ -224,7 +230,7 @@ fun PokemonList(
             pokemonList.size / 2 + 1
         }
         items(itemCount) {
-            if (it >= itemCount - 1 && !endReached) {
+            if (it >= itemCount - 1 && !endReached && !isLoading && !isSearching) {
                 viewModel.loadPokemonPaginated()
             }
             PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
